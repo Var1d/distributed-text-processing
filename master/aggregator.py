@@ -121,9 +121,11 @@ class Aggregator:
         }
 
         total_words = sum(frequencies.values())
+        tasks_by_worker = Counter(result.worker_id for result in results)
 
         return {
             "total_tasks": len(results),
+            "tasks_by_worker": dict(tasks_by_worker),
             "total_documents": len(document_ids),
             "total_words": total_words,
             "unique_words": len(frequencies),

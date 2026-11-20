@@ -1,0 +1,16 @@
+
+Distributed Text Processing System is a distributed computing application.
+
+Distributed processing allows multiple workers to process different tasks simultaneously.
+
+Each worker receives a task from the master server and processes the assigned text.
+
+Text processing includes tokenization, word frequency counting, and document analysis.
+
+Parallel processing improves performance by distributing computational workloads across multiple processors.
+
+Fault tolerance allows the system to recover failed tasks and redistribute them to available workers.
+
+Dynamic load balancing distributes tasks based on worker availability and computational workload.
+
+The master coordinates workers and aggregates the results into a final summary.

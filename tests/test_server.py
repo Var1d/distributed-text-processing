@@ -166,3 +166,50 @@ def test_disconnect_recovers_running_task():
     assert response["recovered_tasks"] == ["TASK-01"]
     assert manager.get_worker("WORKER-01").status == "OFFLINE"
     assert queue.get_task_info("TASK-01")["status"] == "REQUEUED"
+
+
+
+def test_min_workers_barrier_holds_tasks_until_target_registered():
+    manager = WorkerManager()
+    queue = TaskQueue()
+    server = MasterServer(manager, queue, Aggregator(), min_workers=2)
+    server.process_message(create_worker_message("WORKER-01"))
+    queue.add_task(create_task())
+
+    waiting = server.process_message({"type": "REQUEST_TASK", "worker_id": "WORKER-01"})
+    assert waiting["type"] == "NO_TASK"
+    assert queue.get_task_info("TASK-01")["status"] == "PENDING"
+
+    second = create_worker_message("WORKER-02")
+    server.process_message(second)
+    assigned = server.process_message({"type": "REQUEST_TASK", "worker_id": "WORKER-01"})
+    assert assigned["type"] == "TASK"
+
+
+def test_master_sends_shutdown_after_batch():
+    server, _, _, _ = create_server()
+    server.process_message(create_worker_message())
+    server.request_shutdown()
+
+    response = server.process_message({"type": "REQUEST_TASK", "worker_id": "WORKER-01"})
+    assert response["type"] == "SHUTDOWN"
+
+
+def test_assignment_updates_worker_load_immediately():
+    server, manager, queue, _ = create_server()
+    server.process_message(create_worker_message())
+    queue.add_task(create_task())
+    server.process_message({"type": "REQUEST_TASK", "worker_id": "WORKER-01"})
+
+    assigned = manager.get_worker("WORKER-01")
+    assert assigned.active_tasks == 1
+    assert assigned.available_slots == 0
+
+    result = TaskResult(task_id="TASK-01", worker_id="WORKER-01", success=True,
+                        result={"document_id": "DOC-001", "word_frequency": {"python": 1}},
+                        attempt=1)
+    response = server.process_message({"type": "SUBMIT_RESULT", "result": result.to_dict()})
+    assert response["type"] == "RESULT_ACCEPTED"
+    completed = manager.get_worker("WORKER-01")
+    assert completed.active_tasks == 0
+    assert completed.available_slots == 1

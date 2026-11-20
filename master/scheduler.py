@@ -21,6 +21,7 @@ class Scheduler:
         cpu_weight: float = 0.5,
         task_weight: float = 0.3,
         slot_weight: float = 0.2,
+        strategy: str = "dynamic",
     ):
         weights = [cpu_weight, task_weight, slot_weight]
 
@@ -30,6 +31,11 @@ class Scheduler:
         if abs(sum(weights) - 1.0) > 1e-9:
             raise ValueError("Total bobot harus sama dengan 1.")
 
+        if strategy not in ("dynamic", "static"):
+            raise ValueError("strategy harus dynamic atau static.")
+        self.strategy = strategy
+        self._round_robin_index = 0
+        self._assignment_counts = {}
         self.worker_manager = worker_manager
 
         self.cpu_weight = cpu_weight
@@ -96,6 +102,7 @@ class Scheduler:
 
         scores.sort(
             key=lambda item: (
+                self._assignment_counts.get(item["worker_id"], 0),
                 item["load_score"],
                 -item["available_slots"],
                 -item["cpu_cores"],
@@ -104,6 +111,13 @@ class Scheduler:
         )
 
         return scores
+
+    def record_assignment(self, worker_id: str):
+        """Catat giliran task agar Worker idle cepat tidak menguasai antrean."""
+        with self.lock:
+            self._assignment_counts[worker_id] = self._assignment_counts.get(worker_id, 0) + 1
+            if self.strategy == "static":
+                self._round_robin_index += 1
 
     def select_worker(self):
         """
@@ -115,11 +129,13 @@ class Scheduler:
 
         with self.lock:
 
-            scores = self.get_worker_scores()
+            if self.strategy == "static":
+                workers = sorted(self.worker_manager.get_available_workers(), key=lambda w: w.worker_id)
+                if not workers:
+                    return None
+                return workers[self._round_robin_index % len(workers)]
 
+            scores = self.get_worker_scores()
             if not scores:
                 return None
-
-            selected_id = scores[0]["worker_id"]
-
-            return self.worker_manager.get_worker(selected_id)
+            return self.worker_manager.get_worker(scores[0]["worker_id"])

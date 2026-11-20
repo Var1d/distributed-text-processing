@@ -1,8 +1,10 @@
+
 from queue import Queue, Empty
 from threading import Lock
 from typing import Optional
 
 from common.models import Task
+
 
 # Status task
 PENDING = "PENDING"
@@ -21,6 +23,7 @@ class TaskQueue:
     - Mengambil task untuk Worker.
     - Memperbarui status task.
     - Menangani kegagalan dan retry.
+    - Memvalidasi Worker dan attempt.
     - Mengambil informasi status task.
     """
 
@@ -30,11 +33,7 @@ class TaskQueue:
         self.lock = Lock()
 
     def add_task(self, task: Task) -> bool:
-        """
-        Menambahkan task baru ke antrean.
-
-        Task ID harus unik.
-        """
+        """Menambahkan task baru ke antrean."""
 
         with self.lock:
             if task.task_id in self.tasks:
@@ -52,11 +51,7 @@ class TaskQueue:
             return True
 
     def get_next_task(self, worker_id: str) -> Optional[Task]:
-        """
-        Mengambil task berikutnya untuk Worker.
-
-        Mengembalikan None jika antrean kosong.
-        """
+        """Mengambil task berikutnya untuk Worker."""
 
         with self.lock:
             while True:
@@ -79,10 +74,17 @@ class TaskQueue:
 
                 return record["task"]
 
-    def complete_task(self, task_id: str, worker_id: str) -> bool:
+    def complete_task(
+        self,
+        task_id: str,
+        worker_id: str,
+        attempt: Optional[int] = None
+    ) -> bool:
         """
         Menandai task berhasil diselesaikan.
-        Hanya Worker yang ditugaskan boleh menyelesaikannya.
+
+        Hanya Worker yang ditugaskan dan attempt yang
+        sesuai yang boleh menyelesaikan task.
         """
 
         with self.lock:
@@ -97,13 +99,25 @@ class TaskQueue:
             if record["worker_id"] != worker_id:
                 return False
 
+            if (
+                attempt is not None
+                and record["task"].attempt != attempt
+            ):
+                return False
+
             record["status"] = COMPLETED
             record["worker_id"] = None
+            record["error"] = None
 
             return True
 
     def fail_task(
-        self, task_id: str, worker_id: str, error: str, retry: bool = True
+        self,
+        task_id: str,
+        worker_id: str,
+        error: str,
+        retry: bool = True,
+        attempt: Optional[int] = None
     ) -> str:
         """
         Menangani task yang gagal.
@@ -111,7 +125,13 @@ class TaskQueue:
         Jika masih memiliki kesempatan retry,
         task dimasukkan kembali ke antrean.
 
-        Mengembalikan status akhirnya.
+        Mengembalikan:
+        REQUEUED       : task berhasil dimasukkan kembali.
+        FAILED         : batas percobaan sudah habis.
+        NOT_FOUND      : task tidak ditemukan.
+        INVALID_STATE  : status task tidak sesuai.
+        INVALID_WORKER : Worker tidak sesuai.
+        INVALID_ATTEMPT: nomor percobaan tidak sesuai.
         """
 
         with self.lock:
@@ -127,6 +147,12 @@ class TaskQueue:
                 return "INVALID_WORKER"
 
             task = record["task"]
+
+            if (
+                attempt is not None
+                and task.attempt != attempt
+            ):
+                return "INVALID_ATTEMPT"
 
             record["worker_id"] = None
             record["error"] = error
@@ -144,9 +170,7 @@ class TaskQueue:
             return FAILED
 
     def get_task_info(self, task_id: str) -> Optional[dict]:
-        """
-        Mengambil informasi satu task.
-        """
+        """Mengambil informasi satu task."""
 
         with self.lock:
             record = self.tasks.get(task_id)
@@ -164,9 +188,7 @@ class TaskQueue:
             }
 
     def get_all_tasks(self) -> list[dict]:
-        """
-        Mengambil informasi seluruh task.
-        """
+        """Mengambil informasi seluruh task."""
 
         with self.lock:
             return [
@@ -182,9 +204,7 @@ class TaskQueue:
             ]
 
     def get_counts(self) -> dict:
-        """
-        Menghitung jumlah task berdasarkan status.
-        """
+        """Menghitung jumlah task berdasarkan status."""
 
         with self.lock:
             counts = {
@@ -202,32 +222,25 @@ class TaskQueue:
             return counts
 
     def pending_count(self) -> int:
-        """
-        Menghitung task yang menunggu.
-        """
+        """Menghitung jumlah item dalam antrean."""
 
         with self.lock:
             return self.queue.qsize()
 
     def is_empty(self) -> bool:
-        """
-        Memeriksa apakah antrean kosong.
-        """
+        """Memeriksa apakah antrean kosong."""
 
         return self.pending_count() == 0
 
     def get_running_tasks_by_worker(self, worker_id: str) -> list:
-        """
-        Mengambil ID seluruh Task yang sedang dikerjakan
-        oleh Worker tertentu.
-        """
+        """Mengambil ID seluruh task yang sedang dikerjakan Worker."""
 
         with self.lock:
             return [
                 task_id
-                for task_id, info in self.tasks.items()
+                for task_id, record in self.tasks.items()
                 if (
-                    info["status"] == RUNNING
-                    and info["worker_id"] == worker_id
+                    record["status"] == RUNNING
+                    and record["worker_id"] == worker_id
                 )
             ]

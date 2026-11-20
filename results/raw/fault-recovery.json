@@ -1,0 +1,13 @@
+{
+  "mode": "state_simulation",
+  "outcome": "REQUEUED",
+  "recovery_time_seconds": 4.300000000512227e-06,
+  "task": {
+    "task_id": "fault-demo",
+    "status": "REQUEUED",
+    "worker_id": null,
+    "attempt": 2,
+    "max_attempts": 3,
+    "error": "simulasi worker terputus"
+  }
+}

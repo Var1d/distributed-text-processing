@@ -1,0 +1,40 @@
+{
+  "environment": {
+    "mode": "single-host",
+    "physical_workers": 0,
+    "cpu_sample_note": "null berarti durasi terlalu singkat untuk mendapat sampel"
+  },
+  "records": [
+    {
+      "experiment": "sequential",
+      "documents": 1,
+      "bytes": 733,
+      "execution_time_seconds": 0.00033399999938410474,
+      "speedup": 1.0,
+      "efficiency": 1.0,
+      "parallelism": 1,
+      "throughput_units_per_second": 2994.011981568856,
+      "cpu_utilization_percent": null,
+      "memory_rss_peak_mb": 21.90625,
+      "recovery_time_seconds": null
+    },
+    {
+      "experiment": "local_parallel",
+      "documents": 1,
+      "bytes": 733,
+      "execution_time_seconds": 0.1521005000004152,
+      "speedup": 0.002195916511669541,
+      "efficiency": 0.0010979582558347705,
+      "parallelism": 2,
+      "throughput_units_per_second": 6.574600346463491,
+      "cpu_utilization_percent": 11.6,
+      "memory_rss_peak_mb": 22.6015625,
+      "recovery_time_seconds": null
+    }
+  ],
+  "documents": [
+    "sample.txt"
+  ],
+  "document_count": 1,
+  "input_bytes": 733
+}

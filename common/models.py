@@ -71,6 +71,7 @@ class TaskResult:
     result: dict[str, Any] = field(default_factory=dict)
     error: str | None = None
     processing_time: float = 0.0
+    attempt: int = 1
 
     def to_dict(self) -> dict:
         return {
@@ -80,8 +81,17 @@ class TaskResult:
             "result": self.result,
             "error": self.error,
             "processing_time": self.processing_time,
+            "attempt": self.attempt,
         }
 
     @classmethod
     def from_dict(cls, data: dict):
-        return cls(**data)
+        return cls(
+            task_id=data["task_id"],
+            worker_id=data["worker_id"],
+            success=data["success"],
+            result=data.get("result", {}),
+            error=data.get("error"),
+            processing_time=data.get("processing_time", 0.0),
+            attempt=data.get("attempt", 1),
+        )

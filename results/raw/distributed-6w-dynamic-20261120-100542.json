@@ -1,0 +1,29 @@
+{
+  "experiment": "distributed_simulation",
+  "workers": 6,
+  "processes_per_worker": 1,
+  "parallelism_assumption": 6,
+  "scheduling": "dynamic",
+  "documents": 1,
+  "bytes": 733,
+  "total_words": 93,
+  "total_tasks": 10,
+  "tasks_by_worker": {
+    "benchmark-25432-4": 2,
+    "benchmark-25432-3": 2,
+    "benchmark-25432-1": 2,
+    "benchmark-25432-5": 2,
+    "benchmark-25432-0": 1,
+    "benchmark-25432-2": 1
+  },
+  "workers_used": 6,
+  "mode": "single_host_process_simulation",
+  "execution_time_seconds": 1.266751199999817,
+  "speedup": 8.123142061910005e-05,
+  "efficiency": 1.3538570103183342e-05,
+  "parallelism": 6,
+  "throughput_units_per_second": 0.7894210007459591,
+  "cpu_utilization_percent": 15.059999999999999,
+  "memory_rss_peak_mb": 18.63671875,
+  "recovery_time_seconds": null
+}

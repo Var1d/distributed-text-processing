@@ -135,3 +135,14 @@ def test_custom_weights():
     assert scheduler.cpu_weight == 0.6
     assert scheduler.task_weight == 0.2
     assert scheduler.slot_weight == 0.2
+
+
+
+def test_dynamic_scheduler_turns_toward_less_served_worker():
+    manager = WorkerManager()
+    scheduler = Scheduler(manager, strategy="dynamic")
+    manager.register_worker(create_worker("WORKER-01", 4, 10, 0, 1))
+    manager.register_worker(create_worker("WORKER-02", 4, 10, 0, 1))
+    scheduler.record_assignment("WORKER-01")
+    scheduler.record_assignment("WORKER-01")
+    assert scheduler.select_worker().worker_id == "WORKER-02"

@@ -109,6 +109,19 @@ class WorkerManager:
 
             return True
 
+    def adjust_active_tasks(self, worker_id: str, delta: int) -> bool:
+        """Memperbarui task aktif segera saat assignment/hasil terjadi."""
+        if delta not in (-1, 1):
+            raise ValueError("delta hanya boleh -1 atau 1.")
+        with self.lock:
+            worker = self.workers.get(worker_id)
+            if worker is None or worker.status == OFFLINE:
+                return False
+            worker.active_tasks = max(0, worker.active_tasks + delta)
+            worker.available_slots = max(0, 1 - worker.active_tasks)
+            worker.status = IDLE if worker.available_slots else BUSY
+            return True
+
     def mark_offline(self, worker_id: str) -> bool:
         """
         Menandai Worker sebagai offline.
