@@ -1,0 +1,29 @@
+[21:31:20] Master listen 0.0.0.0:53206 | 40 file, 4 task | mode=static | menunggu 2 worker
+[21:31:21] Worker w1 terdaftar: MSI (2 core)
+[21:31:21] Worker w2 terdaftar: MSI (2 core)
+[21:31:21] Semua worker siap -> pemrosesan DIMULAI
+[21:31:21] Task 1 selesai oleh w2 (1/4)
+[21:31:21] Task 3 selesai oleh w2 (2/4)
+[21:31:21] Task 0 selesai oleh w1 (3/4)
+[21:31:21] Task 2 selesai oleh w1 (4/4)
+[21:31:23] === RINGKASAN ===
+{
+  "label": "upgrade_static_2w_r3",
+  "dataset_id": "9fdd2e58bacb326f",
+  "bigrams": 0,
+  "mode": "dist_static",
+  "units": 2,
+  "total_cores": 4,
+  "docs": 40,
+  "mb": 0.32,
+  "exec_time_s": 0.215554,
+  "throughput_docs_s": 185.57,
+  "throughput_mb_s": 1.485,
+  "retries": 0,
+  "avg_recovery_s": 0.0,
+  "avg_cpu_pct": 0.0,
+  "avg_mem_pct": 90.2,
+  "imbalance": 1.715,
+  "failed_tasks": 0,
+  "static_failovers": 0
+}

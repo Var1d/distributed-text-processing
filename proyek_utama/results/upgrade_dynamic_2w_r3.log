@@ -1,0 +1,29 @@
+[21:31:08] Master listen 0.0.0.0:53203 | 40 file, 4 task | mode=dynamic | menunggu 2 worker
+[21:31:09] Worker w1 terdaftar: MSI (2 core)
+[21:31:09] Worker w2 terdaftar: MSI (2 core)
+[21:31:09] Semua worker siap -> pemrosesan DIMULAI
+[21:31:09] Task 0 selesai oleh w2 (1/4)
+[21:31:09] Task 1 selesai oleh w2 (2/4)
+[21:31:09] Task 2 selesai oleh w2 (3/4)
+[21:31:09] Task 3 selesai oleh w2 (4/4)
+[21:31:11] === RINGKASAN ===
+{
+  "label": "upgrade_dynamic_2w_r3",
+  "dataset_id": "9fdd2e58bacb326f",
+  "bigrams": 0,
+  "mode": "dist_dynamic",
+  "units": 2,
+  "total_cores": 4,
+  "docs": 40,
+  "mb": 0.32,
+  "exec_time_s": 0.125218,
+  "throughput_docs_s": 319.44,
+  "throughput_mb_s": 2.556,
+  "retries": 0,
+  "avg_recovery_s": 0.0,
+  "avg_cpu_pct": 0.0,
+  "avg_mem_pct": 89.8,
+  "imbalance": 1.0,
+  "failed_tasks": 0,
+  "static_failovers": 0
+}

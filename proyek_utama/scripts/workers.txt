@@ -1,0 +1,1 @@
+# isi 9 host worker, satu per baris (mis. 192.168.1.11)

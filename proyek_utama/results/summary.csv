@@ -1,0 +1,17 @@
+label,dataset_id,bigrams,mode,units,total_cores,docs,mb,exec_time_s,throughput_docs_s,throughput_mb_s,retries,avg_recovery_s,avg_cpu_pct,avg_mem_pct,imbalance,failed_tasks,static_failovers
+upgrade_dynamic_2w_r1,9fdd2e58bacb326f,0,dist_dynamic,2,4,40,0.32,0.147091,271.94,2.176,0,0.0,0.0,90.8,1.0,0,0
+upgrade_dynamic_2w_r2,9fdd2e58bacb326f,0,dist_dynamic,2,4,40,0.32,0.101407,394.45,3.156,0,0.0,0.0,89.7,1.0,0,0
+upgrade_dynamic_2w_r3,9fdd2e58bacb326f,0,dist_dynamic,2,4,40,0.32,0.125218,319.44,2.556,0,0.0,0.0,89.8,1.0,0,0
+upgrade_static_2w_r1,9fdd2e58bacb326f,0,dist_static,2,4,40,0.32,0.240147,166.56,1.333,0,0.0,0.0,90.8,1.425,0,0
+upgrade_static_2w_r2,9fdd2e58bacb326f,0,dist_static,2,4,40,0.32,0.230983,173.17,1.385,0,0.0,0.0,90.3,1.669,0,0
+upgrade_static_2w_r3,9fdd2e58bacb326f,0,dist_static,2,4,40,0.32,0.215554,185.57,1.485,0,0.0,0.0,90.2,1.715,0,0
+upgrade_static_recovery_r1,1ea54a72afea3df4,0,dist_static,2,2,16,1.02,0.545816,29.31,1.876,1,0.342,0.0,90.2,1.972,0,1
+seq_r1,9fdd2e58bacb326f,0,sequential,1,1,40,0.32,0.029986,1333.96,10.672,,,,,,0,
+seq_r2,9fdd2e58bacb326f,0,sequential,1,1,40,0.32,0.023408,1708.82,13.671,,,,,,0,
+seq_r3,9fdd2e58bacb326f,0,sequential,1,1,40,0.32,0.027678,1445.18,11.561,,,,,,0,
+local_2_r1,9fdd2e58bacb326f,0,local,2,2,40,0.32,0.22723,176.03,1.408,,,,,,0,
+local_2_r2,9fdd2e58bacb326f,0,local,2,2,40,0.32,0.232091,172.35,1.379,,,,,,0,
+local_2_r3,9fdd2e58bacb326f,0,local,2,2,40,0.32,0.19615,203.93,1.631,,,,,,0,
+upgrade_seq_fault,1ea54a72afea3df4,0,sequential,1,1,16,1.02,0.077569,206.27,13.201,,,,,,0,
+upgrade_bigrams_seq,9fdd2e58bacb326f,1,sequential,1,1,40,0.32,0.028245,1416.2,11.33,,,,,,0,
+upgrade_bigrams_dist,9fdd2e58bacb326f,1,dist_dynamic,2,4,40,0.32,0.131079,305.16,2.441,0,0.0,0.0,87.8,1.031,0,0

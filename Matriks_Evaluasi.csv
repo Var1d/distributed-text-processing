@@ -1,0 +1,7 @@
+﻿Kriteria,Bobot,Arsip 1,Arsip 2,Dasar
+Kelengkapan implementasi,30,0,25,Arsip 2 memiliki modul inti
+Kesesuaian tema dan arsitektur,20,4,18,Master-Worker TCP pada arsip 2
+Kemampuan evaluasi/verifikasi,20,0,15,"Skrip tersedia, hasil belum ada"
+Reproduksibilitas dan dokumentasi,15,2,12,README arsip 2 cukup rinci
+Bukti hasil nyata,15,0,4,Belum ada output eksperimen
+Total kesiapan artefak,100,6,74,Skor kesiapan dokumen; bukan nilai akademik

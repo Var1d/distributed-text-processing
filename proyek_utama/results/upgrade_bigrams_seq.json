@@ -1,0 +1,93 @@
+{
+  "dataset_id": "9fdd2e58bacb326f",
+  "bigrams": true,
+  "docs": 40,
+  "chars": 320000,
+  "tokens": 43463,
+  "sentences": 3619,
+  "avg_ttr": 0.4590977147406249,
+  "uni_digest": "6784250bea58f465727325f7c0de2f9a0b6e63c1a037e13fb8a5f6998ecc5bb3",
+  "bi_digest": "b4bf2f9c7a68bccb570e8f77ceb6d95cae375ebc3c1187f09e34b6248a1538c7",
+  "top20_words": [
+    [
+      "kata0",
+      4781
+    ],
+    [
+      "kata1",
+      2404
+    ],
+    [
+      "kata2",
+      1554
+    ],
+    [
+      "kata3",
+      1199
+    ],
+    [
+      "kata4",
+      908
+    ],
+    [
+      "kata5",
+      820
+    ],
+    [
+      "kata6",
+      674
+    ],
+    [
+      "kata7",
+      576
+    ],
+    [
+      "kata8",
+      549
+    ],
+    [
+      "kata9",
+      507
+    ],
+    [
+      "kata10",
+      476
+    ],
+    [
+      "kata11",
+      396
+    ],
+    [
+      "kata12",
+      362
+    ],
+    [
+      "kata14",
+      330
+    ],
+    [
+      "kata13",
+      319
+    ],
+    [
+      "kata15",
+      294
+    ],
+    [
+      "kata16",
+      283
+    ],
+    [
+      "kata17",
+      269
+    ],
+    [
+      "kata18",
+      247
+    ],
+    [
+      "kata19",
+      243
+    ]
+  ]
+}
