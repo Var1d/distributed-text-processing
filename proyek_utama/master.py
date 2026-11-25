@@ -85,7 +85,8 @@ class Master:
         except Exception as exc:
             if w is not None and not w["finished"]:
                 self.mark_dead(w, "koneksi putus")
-            elif isinstance(initial_msg, dict) and initial_msg.get("type") == "register":
+            elif (w is None and isinstance(initial_msg, dict)
+                  and initial_msg.get("type") == "register"):
                 self.log(f"Registrasi worker gagal: {type(exc).__name__}: {exc}")
         finally:
             conn.close()
