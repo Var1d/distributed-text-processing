@@ -8,23 +8,16 @@ import time
 
 from common.protocol import send_msg, recv_msg
 from common.textproc import process_batch, new_result, merge_into, to_wire
-
-try:
-    import psutil
-except ImportError:
-    psutil = None
-
+from common.metrics import ResourceSampler
 
 def heartbeat(host, port, wid, interval, stop):
+    sampler = ResourceSampler()
     sock = None
     try:
         sock = socket.create_connection((host, port), timeout=10)
         send_msg(sock, {"type": "hb_hello", "worker_id": wid})
-        if psutil:
-            psutil.cpu_percent(None)
         while not stop.is_set():
-            cpu = psutil.cpu_percent(None) if psutil else None
-            mem = psutil.virtual_memory().percent if psutil else None
+            cpu, mem = sampler.sample()
             send_msg(sock, {"type": "hb", "cpu": cpu, "mem": mem})
             if stop.wait(interval):
                 break

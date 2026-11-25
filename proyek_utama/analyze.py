@@ -31,8 +31,8 @@ def main(path="results/summary.csv"):
         key = (row.get("dataset_id", ""), row.get("bigrams", "0"))
         workloads[key].append(row)
 
-    print("| workload | mode | unit | n | median waktu (s) | speedup | efficiency | median docs/s | retries | failed |")
-    print("|---|---|---:|---:|---:|---:|---:|---:|---:|---:|")
+    print("| workload | mode | unit | n | median waktu (s) | speedup | efficiency | docs/s | CPU % | mem % | recovery (s) | retries | failed |")
+    print("|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     for (data_id, bigrams), items in sorted(workloads.items()):
         configs = defaultdict(list)
         for row in items:
@@ -51,6 +51,8 @@ def main(path="results/summary.csv"):
             failed = numeric(samples, "failed_tasks")
             print(f"| {workload} | {mode} | {units} | {len(samples)} | {fmt(t)} | {fmt(speedup, 2)} | "
                   f"{fmt(efficiency, 2)} | {fmt(numeric(samples, 'throughput_docs_s'), 2)} | "
+                  f"{fmt(numeric(samples, 'avg_cpu_pct'), 1)} | {fmt(numeric(samples, 'avg_mem_pct'), 1)} | "
+                  f"{fmt(numeric(samples, 'avg_recovery_s'), 3)} | "
                   f"{fmt(retries, 1)} | {fmt(failed, 1)} |")
         if baseline is None:
             print(f"\nWorkload {data_id or 'legacy'} tidak memiliki baseline sequential; speedup tidak dihitung.\n")

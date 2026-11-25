@@ -1,19 +1,18 @@
-# Status Proyek — Tahap Kerja 75% (Validasi Lokal)
+# Status Proyek UAS
 
-Status sementara pada salinan kerja; bukan klaim bahwa eksperimen akhir UAS sudah tuntas. Detail dan bukti ada di `HASIL_PENGUJIAN.md`.
+Status ini membedakan fitur yang tersedia dari eksperimen yang masih harus dilakukan pada node fisik. Kode dan panduan sudah disiapkan untuk matriks pengujian UAS; hasil akhir multi-node belum boleh diklaim sebelum benar-benar dijalankan.
 
-| Komponen | Status |
-|---|---|
-| Master–Worker, protokol, pemrosesan teks | Upgrade lease, validasi pesan, batas ukuran, dan Unicode diterapkan; pemeriksaan lokal lulus |
-| Dynamic/static load balancing | Tiga ulangan tiap mode; hasil cocok dengan baseline |
-| Fault tolerance | Crash pada mode static diuji; task pulih, satu failover dicatat, nol task gagal |
-| Validasi output | Digest penuh unigram/bigram dan metadata workload dibandingkan |
-| Analisis benchmark | Fingerprint dataset dan median ulangan digunakan |
-| Pengukuran CPU/memori | `psutil` terpasang lokal; workload kecil belum memberi sampel CPU representatif |
-| Dataset final | Belum; yang dipakai korpus sintetis untuk uji lokal |
-| Node fisik terpisah dan ulangan skala 1/2/4/6/9 | Belum |
-| BAB IV, kesimpulan, video/bukti | Belum |
+| Kebutuhan | Status artefak | Bukti/pekerjaan berikutnya |
+|---|---|---|
+| Task decomposition | Diimplementasikan | Master membagi file menjadi task berdasarkan `--chunk` |
+| Parallel processing | Diimplementasikan | Worker memakai `multiprocessing.Pool`; ukur konfigurasi core pada perangkat |
+| Distributed processing | Diimplementasikan | TCP Master–Worker; jalankan pada jaringan dan perangkat terpisah |
+| Dynamic load balancing | Diimplementasikan | Bandingkan dynamic dengan static pada workload sama |
+| Fault tolerance | Diimplementasikan | Heartbeat, timeout, retry/requeue, dan lease; rekam run crash nyata |
+| Sequential dan local parallel | Tersedia | Ulangi pada dataset final yang sama dengan eksperimen distributed |
+| Scalability 1/2/4/6/9 worker | Belum dibuktikan multi-node | Jalankan tepat sejumlah worker fisik, tiga ulangan tiap konfigurasi |
+| Dataset benchmark | Generator deterministik tersedia | Gunakan ukuran cukup besar; cantumkan asal/sifat dataset di laporan |
+| CPU/memory di Linux/Android | Fallback `/proc` ditambahkan | Pastikan hasil CSV tidak kosong pada perangkat demonstrasi |
+| Laporan dan video | Belum selesai | Analisis hasil aktual; video demonstrasi 10 node fisik maksimal 5 menit |
 
-## Batas tahap ini
-
-Worker berada di satu komputer dan korpusnya kecil. Hasil mengonfirmasi correctness, protokol, startup timeout, serta recovery lokal, bukan performa multi-node. Tahap final perlu dataset sesuai tugas, host worker yang terkonfigurasi, dan ulangan pada node terpisah.
+Jalankan langkah dan perintah pada `README.md`. Uji kecil 3 dokumen hanya untuk smoke test dan tidak dipakai sebagai bukti performa.
