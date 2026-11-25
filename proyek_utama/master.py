@@ -66,12 +66,13 @@ class Master:
 
     def handle(self, conn):
         w = None
+        initial_msg = None
         try:
-            msg = recv_msg(conn)
-            if not isinstance(msg, dict) or not isinstance(msg.get("type"), str):
+            initial_msg = recv_msg(conn)
+            if not isinstance(initial_msg, dict) or not isinstance(initial_msg.get("type"), str):
                 raise ValueError("pesan awal tidak valid")
-            if msg["type"] == "register":
-                w = self.register(msg, conn)
+            if initial_msg["type"] == "register":
+                w = self.register(initial_msg, conn)
                 while True:
                     m = recv_msg(conn)
                     if m["type"] == "get_task":
@@ -79,11 +80,13 @@ class Master:
                     elif m["type"] == "result":
                         accepted = self.on_result(w, m)
                         send_msg(conn, {"type": "ack" if accepted else "stale_result"})
-            elif msg["type"] == "hb_hello":
-                self.heartbeat_loop(conn, msg["worker_id"])
-        except Exception:
+            elif initial_msg["type"] == "hb_hello":
+                self.heartbeat_loop(conn, initial_msg["worker_id"])
+        except Exception as exc:
             if w is not None and not w["finished"]:
                 self.mark_dead(w, "koneksi putus")
+            elif isinstance(initial_msg, dict) and initial_msg.get("type") == "register":
+                self.log(f"Registrasi worker gagal: {type(exc).__name__}: {exc}")
         finally:
             conn.close()
 
@@ -252,16 +255,17 @@ class Master:
     def report(self):
         T = max(self.t_end - self.t0, 1e-9)
         ws = list(self.workers.values())
-        busy = [w["busy"] for w in ws if w["tasks"]] or [0]
+        used_ws = [w for w in ws if w["tasks"] > 0]
+        busy = [w["busy"] for w in used_ws] or [0]
         avg = lambda xs: sum(xs) / len(xs) if xs else 0.0
-        cpu_samples = [v for w in ws for v in w["cpu"] if isinstance(v, (int, float))]
-        mem_samples = [v for w in ws for v in w["mem"] if isinstance(v, (int, float))]
+        cpu_samples = [v for w in used_ws for v in w["cpu"] if isinstance(v, (int, float))]
+        mem_samples = [v for w in used_ws for v in w["mem"] if isinstance(v, (int, float))]
         cpu = avg(cpu_samples) if cpu_samples else None
         mem = avg(mem_samples) if mem_samples else None
         mb = self.total_bytes / 1e6
         row = {"label": self.a.label, "dataset_id": self.dataset_id, "bigrams": int(self.a.bigrams),
-               "mode": f"dist_{self.a.balancing}", "units": self.a.min_workers,
-               "total_cores": sum(w["cores"] for w in ws), "docs": self.result["docs"], "mb": round(mb, 2),
+               "mode": f"dist_{self.a.balancing}", "units": len(used_ws),
+               "total_cores": sum(w["cores"] for w in used_ws), "docs": self.result["docs"], "mb": round(mb, 3),
                "exec_time_s": round(T, 6), "throughput_docs_s": round(self.result["docs"] / T, 2),
                "throughput_mb_s": round(mb / T, 3), "retries": self.retries,
                "avg_recovery_s": round(avg(self.recoveries), 3),

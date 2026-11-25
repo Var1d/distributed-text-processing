@@ -10,6 +10,29 @@ from common.protocol import send_msg, recv_msg
 from common.textproc import process_batch, new_result, merge_into, to_wire
 from common.metrics import ResourceSampler
 
+
+def connect_with_retry(host, port, retries, retry_delay):
+    last_error = None
+    for attempt in range(1, retries + 1):
+        try:
+            sock = socket.create_connection((host, port), timeout=5)
+            # Do not let the short startup timeout interrupt a large task later.
+            sock.settimeout(None)
+            return sock
+        except OSError as exc:
+            last_error = exc
+            if attempt == retries:
+                break
+            delay = min(retry_delay * (2 ** (attempt - 1)), 10.0)
+            print(f"Koneksi ke master {host}:{port} gagal ({attempt}/{retries}): {exc}; "
+                  f"coba lagi dalam {delay:g} dtk", flush=True)
+            time.sleep(delay)
+    raise ConnectionError(
+        f"Tidak dapat terhubung ke master {host}:{port} setelah {retries} percobaan. "
+        "Periksa IP, jaringan yang sama, master yang sedang berjalan, dan firewall."
+    ) from last_error
+
+
 def heartbeat(host, port, wid, interval, stop):
     sampler = ResourceSampler()
     sock = None
@@ -32,20 +55,31 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--master", required=True)
     p.add_argument("--port", type=int, default=5000)
-    p.add_argument("--cores", type=int, default=os.cpu_count() or 1)
+    p.add_argument("--cores", type=int, default=min(os.cpu_count() or 1, 4))
     p.add_argument("--slow", type=float, default=1.0)
     p.add_argument("--crash-after", type=int, default=0)
     p.add_argument("--hb-interval", type=float, default=1.0)
+    p.add_argument("--connect-retries", type=int, default=10,
+                   help="jumlah percobaan koneksi awal ke master")
+    p.add_argument("--retry-delay", type=float, default=1.0,
+                   help="jeda awal antarpercobaan koneksi (detik; eksponensial, maksimum 10)")
     a = p.parse_args()
-    if a.cores < 1 or a.slow < 1 or a.hb_interval <= 0 or not 1 <= a.port <= 65535:
-        p.error("cores >= 1, slow >= 1, heartbeat > 0, dan port 1..65535 diperlukan")
+    if (a.cores < 1 or a.slow < 1 or a.hb_interval <= 0 or not 1 <= a.port <= 65535
+            or a.connect_retries < 1 or a.retry_delay <= 0):
+        p.error("cores >= 1, slow >= 1, heartbeat/retry-delay > 0, retries >= 1, dan port 1..65535 diperlukan")
 
-    pool = mp.Pool(a.cores)
+    try:
+        pool = mp.Pool(a.cores)
+    except (OSError, FileNotFoundError) as exc:
+        raise SystemExit(
+            "Worker tidak dapat memulai multiprocessing.Pool pada perangkat ini. "
+            "Gunakan Linux/Windows/Android Termux; iSH pada iPhone tidak mendukung kebutuhan ini."
+        ) from exc
     sock = None
     stop_hb = threading.Event()
     hb_thread = None
     try:
-        sock = socket.create_connection((a.master, a.port), timeout=10)
+        sock = connect_with_retry(a.master, a.port, a.connect_retries, a.retry_delay)
         send_msg(sock, {"type": "register", "host": socket.gethostname(), "cores": a.cores})
         registration = recv_msg(sock)
         if registration.get("type") != "registered":

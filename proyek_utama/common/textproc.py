@@ -12,17 +12,27 @@ it its this that these those he she they we you i not no so do does did have has
 
 def process_document(text, bigrams=False):
     text = unicodedata.normalize("NFKC", text)
-    tokens = [t.casefold() for t in TOKEN_RE.findall(text)]
-    words = [t for t in tokens if t not in STOPWORDS]
-    uni = Counter(words)
+    token_count = 0
+    unique_tokens = set()
+    uni = Counter()
     bi = Counter()
+    previous_word = None
+    for match in TOKEN_RE.finditer(text):
+        token = match.group().casefold()
+        token_count += 1
+        unique_tokens.add(token)
+        if token in STOPWORDS:
+            continue
+        uni[token] += 1
+        if bigrams and previous_word is not None:
+            bi[f"{previous_word} {token}"] += 1
+        previous_word = token
     if bigrams:
-        bi = Counter(zip(words, words[1:]))
-        bi = Counter({f"{a} {b}": c for (a, b), c in bi.items() if c >= 2})
+        bi = Counter({pair: count for pair, count in bi.items() if count >= 2})
     return {
-        "chars": len(text), "tokens": len(tokens),
-        "sentences": len(SENT_RE.findall(text)),
-        "ttr": (len(set(tokens)) / len(tokens)) if tokens else 0.0,  # lexical diversity
+        "chars": len(text), "tokens": token_count,
+        "sentences": sum(1 for _ in SENT_RE.finditer(text)),
+        "ttr": (len(unique_tokens) / token_count) if token_count else 0.0,  # lexical diversity
         "uni": uni, "bi": bi,
     }
 
