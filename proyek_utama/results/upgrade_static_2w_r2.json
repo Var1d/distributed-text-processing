@@ -1,0 +1,128 @@
+{
+  "label": "upgrade_static_2w_r2",
+  "dataset_id": "9fdd2e58bacb326f",
+  "bigrams": 0,
+  "mode": "dist_static",
+  "units": 2,
+  "total_cores": 4,
+  "docs": 40,
+  "mb": 0.32,
+  "exec_time_s": 0.230983,
+  "throughput_docs_s": 173.17,
+  "throughput_mb_s": 1.385,
+  "retries": 0,
+  "avg_recovery_s": 0.0,
+  "avg_cpu_pct": 0.0,
+  "avg_mem_pct": 90.3,
+  "imbalance": 1.669,
+  "failed_tasks": 0,
+  "static_failovers": 0,
+  "detect_latency_s": [],
+  "per_worker": {
+    "w1": {
+      "host": "MSI",
+      "cores": 2,
+      "tasks": 2,
+      "docs": 20,
+      "busy_s": 0.02,
+      "alive": true
+    },
+    "w2": {
+      "host": "MSI",
+      "cores": 2,
+      "tasks": 2,
+      "docs": 20,
+      "busy_s": 0.1,
+      "alive": true
+    }
+  },
+  "chars": 320000,
+  "tokens": 43463,
+  "sentences": 3619,
+  "avg_ttr": 0.4590977147406248,
+  "uni_digest": "6784250bea58f465727325f7c0de2f9a0b6e63c1a037e13fb8a5f6998ecc5bb3",
+  "bi_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "top20_words": [
+    [
+      "kata0",
+      4781
+    ],
+    [
+      "kata1",
+      2404
+    ],
+    [
+      "kata2",
+      1554
+    ],
+    [
+      "kata3",
+      1199
+    ],
+    [
+      "kata4",
+      908
+    ],
+    [
+      "kata5",
+      820
+    ],
+    [
+      "kata6",
+      674
+    ],
+    [
+      "kata7",
+      576
+    ],
+    [
+      "kata8",
+      549
+    ],
+    [
+      "kata9",
+      507
+    ],
+    [
+      "kata10",
+      476
+    ],
+    [
+      "kata11",
+      396
+    ],
+    [
+      "kata12",
+      362
+    ],
+    [
+      "kata14",
+      330
+    ],
+    [
+      "kata13",
+      319
+    ],
+    [
+      "kata15",
+      294
+    ],
+    [
+      "kata16",
+      283
+    ],
+    [
+      "kata17",
+      269
+    ],
+    [
+      "kata18",
+      247
+    ],
+    [
+      "kata19",
+      243
+    ]
+  ],
+  "top10_bigrams": []
+}
