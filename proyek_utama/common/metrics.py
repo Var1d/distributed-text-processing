@@ -15,14 +15,21 @@ class ResourceSampler:
         self._psutil = None
         try:
             import psutil
-            self._psutil = psutil
+            # Android/Termux may install psutil but restrict access to /proc.
+            # Treat psutil as optional so metrics never prevent worker startup.
             psutil.cpu_percent(None)  # prime psutil's interval counter
-        except ImportError:
+            self._psutil = psutil
+        except Exception:
             pass
 
     def sample(self):
         if self._psutil is not None:
-            return (self._psutil.cpu_percent(None), self._psutil.virtual_memory().percent)
+            try:
+                return (self._psutil.cpu_percent(None), self._psutil.virtual_memory().percent)
+            except Exception:
+                # Fall through to procfs, which can also be restricted on
+                # Android; the helpers return None when it is unavailable.
+                self._psutil = None
         cpu = self._linux_cpu_percent()
         mem = self._linux_memory_percent()
         return cpu, mem
