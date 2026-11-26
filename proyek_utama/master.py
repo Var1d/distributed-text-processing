@@ -42,7 +42,14 @@ class Master:
     def serve(self):
         srv = socket.socket(); srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server = srv
-        srv.bind((self.a.host, self.a.port)); srv.listen(64)
+        try:
+            srv.bind((self.a.host, self.a.port)); srv.listen(64)
+        except OSError as exc:
+            srv.close()
+            raise SystemExit(
+                f"Master gagal membuka {self.a.host}:{self.a.port}: {exc}. "
+                "Pastikan alamat bind tersedia dan port belum dipakai."
+            ) from exc
         self.log(f"Master listen {self.a.host}:{self.a.port} | {len(self.files)} file, "
                  f"{len(self.tasks)} task | mode={self.a.balancing} | menunggu {self.a.min_workers} worker")
         threading.Thread(target=self.monitor, daemon=True).start()
@@ -68,9 +75,11 @@ class Master:
         w = None
         initial_msg = None
         try:
+            conn.settimeout(15)
             initial_msg = recv_msg(conn)
             if not isinstance(initial_msg, dict) or not isinstance(initial_msg.get("type"), str):
                 raise ValueError("pesan awal tidak valid")
+            conn.settimeout(None)
             if initial_msg["type"] == "register":
                 w = self.register(initial_msg, conn)
                 while True:
@@ -82,12 +91,24 @@ class Master:
                         send_msg(conn, {"type": "ack" if accepted else "stale_result"})
             elif initial_msg["type"] == "hb_hello":
                 self.heartbeat_loop(conn, initial_msg["worker_id"])
+            elif initial_msg["type"] == "probe":
+                send_msg(conn, {"type": "probe_ok"})
+            else:
+                raise ValueError(f"jenis koneksi tidak dikenal: {initial_msg['type']}")
         except Exception as exc:
             if w is not None and not w["finished"]:
                 self.mark_dead(w, "koneksi putus")
-            elif (w is None and isinstance(initial_msg, dict)
-                  and initial_msg.get("type") == "register"):
-                self.log(f"Registrasi worker gagal: {type(exc).__name__}: {exc}")
+            elif w is None and (
+                    initial_msg is None
+                    or not isinstance(initial_msg, dict)
+                    or initial_msg.get("type") not in ("probe", "hb_hello")):
+                peer = "unknown"
+                try:
+                    peer = conn.getpeername()[0]
+                except OSError:
+                    pass
+                kind = "registrasi worker" if isinstance(initial_msg, dict) and initial_msg.get("type") == "register" else "handshake"
+                self.log(f"{kind.capitalize()} gagal dari {peer}: {type(exc).__name__}: {exc}")
         finally:
             conn.close()
 
@@ -96,7 +117,12 @@ class Master:
             raise ValueError("metadata worker tidak valid")
         with self.lock:
             wid = f"w{len(self.workers) + 1}"
-            w = {"id": wid, "idx": len(self.workers), "host": msg["host"], "cores": msg["cores"],
+            try:
+                peer_ip = conn.getpeername()[0]
+            except OSError:
+                peer_ip = "unknown"
+            w = {"id": wid, "idx": len(self.workers), "host": msg["host"], "peer_ip": peer_ip,
+                 "cores": msg["cores"],
                  "last_seen": time.time(), "alive": True, "finished": False, "inflight": {},
                  "tasks": 0, "docs": 0, "busy": 0.0, "cpu": [], "mem": []}
             self.workers[wid] = w
@@ -104,7 +130,7 @@ class Master:
                 self.queues.setdefault(w["idx"], deque())
                 while self.pending:
                     self.queues[w["idx"]].append(self.pending.popleft())
-            self.log(f"Worker {wid} terdaftar: {msg['host']} ({msg['cores']} core)")
+            self.log(f"Worker {wid} terdaftar: {msg['host']} dari {peer_ip} ({msg['cores']} core)")
             if not self.started and len(self.workers) >= self.a.min_workers:
                 self.start()
         send_msg(conn, {"type": "registered", "worker_id": wid})
@@ -277,7 +303,8 @@ class Master:
         append_summary(row, os.path.join(self.a.out, "summary.csv"))
         r = self.result
         detail = {**row, "failed_tasks": self.failed, "detect_latency_s": self.detect_lat,
-                  "per_worker": {w["id"]: {"host": w["host"], "cores": w["cores"], "tasks": w["tasks"],
+                  "per_worker": {w["id"]: {"host": w["host"], "peer_ip": w["peer_ip"],
+                                           "cores": w["cores"], "tasks": w["tasks"],
                                            "docs": w["docs"], "busy_s": round(w["busy"], 2),
                                            "alive": w["alive"]} for w in ws},
                   "chars": r["chars"], "tokens": r["tokens"], "sentences": r["sentences"],

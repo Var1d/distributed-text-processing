@@ -226,4 +226,5 @@ __marimo__/
 proyek_utama/data/corpus/*.txt
 proyek_utama/data/corpus_fault/*.txt
 proyek_utama/data/corpus_uas/*.txt
+proyek_utama/data/corpus_200mb/*.txt
 proyek_utama/results/*.err

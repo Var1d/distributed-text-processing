@@ -63,10 +63,29 @@ def main():
                    help="jumlah percobaan koneksi awal ke master")
     p.add_argument("--retry-delay", type=float, default=1.0,
                    help="jeda awal antarpercobaan koneksi (detik; eksponensial, maksimum 10)")
+    p.add_argument("--check-connection", action="store_true",
+                   help="uji koneksi TCP dan protokol ke master tanpa mendaftar atau membuat proses worker")
     a = p.parse_args()
     if (a.cores < 1 or a.slow < 1 or a.hb_interval <= 0 or not 1 <= a.port <= 65535
             or a.connect_retries < 1 or a.retry_delay <= 0):
         p.error("cores >= 1, slow >= 1, heartbeat/retry-delay > 0, retries >= 1, dan port 1..65535 diperlukan")
+
+    if a.check_connection:
+        probe_sock = None
+        try:
+            probe_sock = connect_with_retry(a.master, a.port, a.connect_retries, a.retry_delay)
+            probe_sock.settimeout(5)
+            send_msg(probe_sock, {"type": "probe"})
+            response = recv_msg(probe_sock)
+            if not isinstance(response, dict) or response.get("type") != "probe_ok":
+                raise ConnectionError("master tidak mengembalikan respons probe yang valid")
+            print(f"Koneksi TCP/protokol ke master {a.master}:{a.port} BERHASIL", flush=True)
+            return
+        except (OSError, ValueError) as exc:
+            raise SystemExit(f"Tes koneksi ke master {a.master}:{a.port} GAGAL: {exc}") from None
+        finally:
+            if probe_sock:
+                probe_sock.close()
 
     try:
         pool = mp.Pool(a.cores)
@@ -78,6 +97,7 @@ def main():
     sock = None
     stop_hb = threading.Event()
     hb_thread = None
+    wid = "worker"
     try:
         sock = connect_with_retry(a.master, a.port, a.connect_retries, a.retry_delay)
         send_msg(sock, {"type": "register", "host": socket.gethostname(), "cores": a.cores})
@@ -121,7 +141,11 @@ def main():
             send_msg(sock, {"type": "result", "task_id": msg["task_id"],
                             "lease_id": msg["lease_id"], "elapsed": elapsed,
                             "result": to_wire(acc)})
-            recv_msg(sock)  # ack or stale_result; both mean the master accepted the message frame
+            ack = recv_msg(sock)
+            if not isinstance(ack, dict) or ack.get("type") not in ("ack", "stale_result"):
+                raise ConnectionError("respons pengakuan hasil dari master tidak valid")
+    except OSError as exc:
+        raise SystemExit(f"[{wid}] koneksi ke master terputus: {exc}") from None
     finally:
         stop_hb.set()
         if sock:

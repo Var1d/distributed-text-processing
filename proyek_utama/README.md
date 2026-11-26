@@ -34,6 +34,16 @@ Cantumkan Project Gutenberg dan periksa ketentuan penggunaan setiap buku. Jika u
 
 Jalankan perintah dari folder `proyek_utama`. Pada master, pilih IP privat dengan `ipconfig` (Windows) atau `ip addr` (Linux). Pastikan TCP port 5000 dapat diakses hanya pada jaringan privat yang digunakan.
 
+Untuk koneksi pada laptop yang sama, gunakan `127.0.0.1`. Untuk HP/komputer lain, gunakan IPv4 laptop pada adapter jaringan yang sama; `localhost` pada HP menunjuk ke HP itu sendiri, bukan laptop. Master harus dijalankan dengan `--host 0.0.0.0` agar menerima koneksi jaringan.
+
+Sebelum mendaftar sebagai worker, uji jalur TCP dan protokol aplikasi (ping ICMP tidak diperlukan):
+
+```bash
+python worker.py --master IP_MASTER --port 5000 --check-connection --connect-retries 1
+```
+
+Jika tes ini gagal, periksa IP master, jaringan/guest Wi-Fi atau client isolation, Windows Firewall untuk TCP port 5000, dan pastikan master masih listen. Di Windows, `Test-NetConnection IP_MASTER -Port 5000` juga mengecek port TCP; `ping` dapat diblokir meskipun TCP berfungsi.
+
 ```bash
 # Sequential baseline dan local multiprocessing; gunakan korpus dan opsi yang sama
 python baseline.py --data data/corpus_uas --mode sequential --label seq_r1
